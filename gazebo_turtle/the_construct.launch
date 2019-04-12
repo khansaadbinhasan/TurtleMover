@@ -1,0 +1,3 @@
+<launch>
+	<node pkg="gazebo_turtle" type="the_construct.py" name="scan_values" output="screen"></node>
+</launch>
