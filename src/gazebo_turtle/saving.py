@@ -8,27 +8,19 @@ from geometry_msgs.msg import Twist
 import sys, traceback
 from nav_msgs.msg import Odometry
 
+
+
 pub = rospy.Publisher("/cmd_vel_mux/input/navi", Twist, queue_size=10)
 
 distRightold, distLeftold, distFrontold = 0, 0, 0
 distRightDel, distLeftDel, distFrontDel = 0, 0, 0
 
-flag = 0
+flag0 = 0
+flag1 = 0
+flag2 = 0
 
-currentX = 0
-currentY = 0
-
-initX = 0
-initY = 0
-
-visitedXrange = []
-visitedYrange = []
-
-distFrontflag = 0
-angZ = 0
 angVel = 1
 
-flag1 = 0
 
 def laser_message( subMsg ):
 	pubMsg = Twist()
@@ -39,15 +31,14 @@ def laser_message( subMsg ):
 	global distRightold
 	global distFrontold	
 	global distLeftold
-	global flag
-	global visitedXrange
-	global visitedYrange
-	global distFrontflag
-	global angZ
-	global angVel
+	global flag0
 	global flag1
+	global flag2
+	global angVel
 
 
+	# These statements take care of the nan values: 
+	# The values are nan for
 	if ~np.isnan(subMsg.ranges[0]):
 		distRightnew = subMsg.ranges[0]
 		distRightDel = distRightnew - distRightold
@@ -86,59 +77,68 @@ def laser_message( subMsg ):
 	print("distRight: ", distRightnew)
 	print("distFront: ", distFrontnew)
 	print("distLeft: ", distLeftnew)
-	print("angZ: ", angZ)
 
 	distList = [distFrontnew, distLeftnew, distRightnew]
 	maxDist = max(distList)
 
-	rightAngle = (angZ < 0.1 and angZ > -0.1) or (angZ < (np.pi/2 + 0.1) and angZ > (np.pi/2 - 0.1)) or (angZ < -(np.pi/2 + 0.1) and angZ > -(np.pi/2 - 0.1) or (angZ < -(np.pi + 0.1) and angZ > -(np.pi - 0.1)) )
+	angVel = 0
+	xVel = 0
 
-	print("(angZ < 0.1 and angZ > -0.1)",(angZ < 0.1 and angZ > -0.1))
-	print("rightAngle",rightAngle)
-	print("flag1==1",flag1==1)
-	print("~rightAngle or flag1 == 1",bool(~rightAngle or flag1 == 1))
+	print("flag1: ", flag1)
+	print("flag2: ", flag2)
 
-	if rightAngle:
-		flag1 = 0
+	if distFrontnew > 0.5 and distLeftnew > 0.5 and distRightnew > 0.5:
+		
+		if distFrontnew < 0.75 or distLeftnew < 0.75 or distRightnew < 0.75:
+			xVel = 0
 
-	if ~rightAngle or flag1 == 1:
-		pubMsg.angular.z = angVel
-
-	else:
-		print("jher")
-		if distFrontnew > 0.75 and distLeftnew > 0.75 and distRightnew > 0.75:
-			
-			if distFrontnew == maxDist or distFrontflag == 1:
-				pubMsg.linear.x = 1
-				distFrontflag = 1
-
-			elif distRightnew == maxDist:
-				angVel = 1
-				flag1 = 1
-
-
-			elif distLeftnew == maxDist:
+			if distLeftnew < 0.75:
 				angVel = -1
-				flag1 = 1
-
-
-			if distFrontnew > 0.75 and distFrontnew < 0.8:
-				distFrontflag = 0
-
-		else:
-			if distLeftnew <= 0.75:
-				angVel = 1
-				pubMsg.angular.z = angVel
 				flag1 = 1
 
 			else:
-				angVel = -1
-				pubMsg.angular.z = angVel
-				flag1 = 1
-
-	
+				angVel = 1
+				flag2 = 1
 
 
+		elif distFrontnew == maxDist or flag0 == 1:
+			xVel = 1
+			flag0 = 1
+
+		elif abs(distRightnew - distLeftnew) < 0.25:
+			angVel = 1
+
+		elif abs(distRightnew - distFrontnew) < 0.25:
+			xVel = 1
+
+		elif abs(distLeftnew - distFrontnew) < 0.25:
+			xVel = -1
+
+
+		elif distRightnew == maxDist and flag1 == 1:
+			xVel = -1
+
+		elif distRightnew == maxDist:
+			angVel = 1
+
+		elif distLeftnew == maxDist and flag2 == 1:
+			xVel = -1
+
+		elif distLeftnew == maxDist:
+			angVel = -1
+
+		if distFrontnew > 0.5 and distFrontnew < 0.6:
+			flag0 = 0
+
+		if distRightnew >= 1.00:
+			flag2 = 0
+
+		if distLeftnew >= 1.00:
+			flag1 = 0
+
+
+	pubMsg.angular.z = angVel
+	pubMsg.linear.x = xVel
 
 	distRightold, distLeftold, distFrontold = distRightnew, distLeftnew, distFrontnew
 	
