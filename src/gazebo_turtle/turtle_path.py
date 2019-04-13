@@ -51,13 +51,16 @@ def odom_message( subMsg ):
 	global pos
 	global flag
 
+
+	pos["currentX"] = subMsg.pose.pose.position.x
+	pos["currentY"] = subMsg.pose.pose.position.y
+
 	if flag[6] == False:
 		flag[6] = True
 		pos["initX"] = pos["currentX"]
 		pos["initY"] = pos["currentY"]
 
-	pos["currentX"] = subMsg.pose.pose.position.x
-	pos["currentY"] = subMsg.pose.pose.position.y
+
 	angZ = subMsg.pose.pose.orientation.z
 
 
@@ -131,6 +134,9 @@ def path_algo( subMsg ):
 	print("distFront: ", dist["Frontnew"])
 	print("distLeft: ", dist["Leftnew"])
 
+	print("initX: ", pos["initX"])
+	print("initY: ", pos["initY"])
+
 	print("X: ", X)
 	print("Y: ", Y)
 
@@ -151,7 +157,7 @@ def path_algo( subMsg ):
 				print("going back")
 				print("rotating left")
 
-				if ( Y > 2 and X < 10 ) or flag[5] == True:
+				if ( Y < 3 and Y > -2 and X < 3 ) or flag[5] == True:
 					angVel = left
 					flag[5] = True
 
