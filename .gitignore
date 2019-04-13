@@ -1,7 +1,7 @@
-/build
-/devel
-/src/CMakeLists.txt
+build
+devel
+src/CMakeLists.txt
+src/saving.py
+src/the_construct.py
+src/the_construct.launch
 .catkin_workspace
-/src/saving.py
-/src/the_construct.py
-/src/the_construct.launch
