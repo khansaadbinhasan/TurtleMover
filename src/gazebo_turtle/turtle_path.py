@@ -20,6 +20,8 @@ flag1 = False
 flag2 = False
 flag3 = False
 flag4 = False
+flag5 = False
+flag6 = False
 
 # angVel = 1
 sumAng = 0
@@ -27,6 +29,12 @@ count = 0
 
 angZ = 0
 initAngZ = 0
+
+currentX = 0
+currentY = 0
+
+initX = 0
+initY = 0
 
 def laser_message( subMsg ):
 	pubMsg = Twist()
@@ -48,6 +56,12 @@ def odom_message( subMsg ):
 	global currentX
 	global currentY
 	global angZ
+	global flag6
+
+	if flag6 == False:
+		flag6 = True
+		initX = currentX
+		initY = currentY
 
 	currentX = subMsg.pose.pose.position.x
 	currentY = subMsg.pose.pose.position.y
@@ -66,12 +80,15 @@ def path_algo( subMsg ):
 	global flag2
 	global flag3
 	global flag4
+	global flag5
 	# global angVel
 	global sumAng
 	global count
 	global rotatedAng
 	global angZ
 	global initAngZ
+	global currentX
+	global currentY
 
 	# These statements take care of the nan values: 
 	# The values are nan for
@@ -127,47 +144,25 @@ def path_algo( subMsg ):
 
 	delAngZ = abs(angZ - initAngZ)
 
+	X = currentX - initX
+	Y = currentY - initY
+
 
 	print("\n"*3)
 	print("distRight: ", distRightnew)
 	print("distFront: ", distFrontnew)
 	print("distLeft: ", distLeftnew)
-
-	print("flag0: ", flag0)
-	print("flag1: ", flag1)
-	print("flag2: ", flag2)
-
-	print("delAngZ: ", delAngZ)
-	print("initAngZ: ", initAngZ)
-	print("angZ: ", angZ)
-
+	
+	print("X: ", X)
+	print("Y: ", Y)
 
 	print("\n"*3)
-
-	if delAngZ > 0.75:
-		
-		if angVel == right or flag2 == True:
-			angVel = left
-			flag2 = True
-			flag1 = False
-
-			print("rotating left")
-
-
-		elif angVel == left or flag1 == True:
-			angVel = right
-			flag1 = True
-			flag2 = False
-
-			print("rotating right")
 
 	if distFrontnew > 0.5 and distLeftnew > 0.5 and distRightnew > 0.5:
 		
 		if distFrontnew < 0.75 or distLeftnew < 0.75 or distRightnew < 0.75:
 
 			xVel = rest
-
-			count = count + 1
 
 			if count == 1:
 				initAngZ = angZ
@@ -176,10 +171,18 @@ def path_algo( subMsg ):
 			elif distFrontnew < 0.75 or flag4 == True:
 				xVel = -0.1
 				flag4 = True
-				angVel = left
+				angVel = right
 
 				print("going back")
 				print("rotating left")
+
+				if ( Y > 0 and X > 5) or flag5 == True:
+					angVel = left
+					flag5 = True
+
+					print("rotating right")
+
+				
 
 			elif distRightnew < 0.75 or flag2 == True:
 				angVel = left
@@ -196,9 +199,6 @@ def path_algo( subMsg ):
 				flag2 = False
 
 				print("rotating right")
-
-		elif count > 0:
-			count = 0
 
 		elif distFrontnew == maxDist or flag0 == True:
 			xVel = front
