@@ -21,7 +21,7 @@ flag2 = False
 flag3 = False
 flag4 = False
 
-angVel = 1
+# angVel = 1
 sumAng = 0
 count = 0
 
@@ -31,6 +31,30 @@ initAngZ = 0
 def laser_message( subMsg ):
 	pubMsg = Twist()
 
+
+	xVel, angVel = path_algo( subMsg )
+
+	# if delAngZ < 0.3:
+	# 	angVel = -1
+	# xVel = 0
+
+	pubMsg.angular.z = angVel
+	pubMsg.linear.x = xVel
+	
+	pub.publish(pubMsg)
+
+
+def odom_message( subMsg ):
+	global currentX
+	global currentY
+	global angZ
+
+	currentX = subMsg.pose.pose.position.x
+	currentY = subMsg.pose.pose.position.y
+	angZ = subMsg.pose.pose.orientation.z
+
+
+def path_algo( subMsg ):
 	global distRightDel
 	global distFrontDel
 	global distLeftDel 
@@ -42,7 +66,7 @@ def laser_message( subMsg ):
 	global flag2
 	global flag3
 	global flag4
-	global angVel
+	# global angVel
 	global sumAng
 	global count
 	global rotatedAng
@@ -89,20 +113,11 @@ def laser_message( subMsg ):
 
 
 
-	print("\n"*3)
-	print("distRight: ", distRightnew)
-	print("distFront: ", distFrontnew)
-	print("distLeft: ", distLeftnew)
-
 	distList = [distFrontnew, distLeftnew, distRightnew]
 	maxDist = max(distList)
 
 	angVel = 0
 	xVel = 0
-
-	print("flag0: ", flag0)
-	print("flag1: ", flag1)
-	print("flag2: ", flag2)
 
 	left = -1
 	right = 1
@@ -113,17 +128,28 @@ def laser_message( subMsg ):
 	delAngZ = abs(angZ - initAngZ)
 
 
+	print("\n"*3)
+	print("distRight: ", distRightnew)
+	print("distFront: ", distFrontnew)
+	print("distLeft: ", distLeftnew)
+
+	print("flag0: ", flag0)
+	print("flag1: ", flag1)
+	print("flag2: ", flag2)
+
 	print("delAngZ: ", delAngZ)
 	print("initAngZ: ", initAngZ)
 	print("angZ: ", angZ)
 
-	if delAngZ > 0.5:
+
+	print("\n"*3)
+
+	if delAngZ > 0.75:
 		
 		if angVel == right or flag2 == True:
 			angVel = left
 			flag2 = True
 			flag1 = False
-
 
 			print("rotating left")
 
@@ -147,16 +173,29 @@ def laser_message( subMsg ):
 				initAngZ = angZ
 
 
-			elif distLeftnew < 0.75 or distFrontnew < 0.75 or flag1 == True:
-				angVel = right
-				flag1 = True	
-				flag2 = False
+			elif distFrontnew < 0.75 or flag4 == True:
+				xVel = -0.1
+				flag4 = True
+				angVel = left
+
+				print("going back")
+				print("rotating left")
 
 			elif distRightnew < 0.75 or flag2 == True:
 				angVel = left
 				flag2 = True
 				flag1 = False
+				flag0 = False
 
+				print("rotating left")
+
+			elif distLeftnew < 0.75 or flag1 == True:
+				angVel = right
+				flag0 = False
+				flag1 = True	
+				flag2 = False
+
+				print("rotating right")
 
 		elif count > 0:
 			count = 0
@@ -164,53 +203,35 @@ def laser_message( subMsg ):
 		elif distFrontnew == maxDist or flag0 == True:
 			xVel = front
 			flag0 = True
+			flag1 = False
+			flag2 = False
+
+			print("going forward")
 
 		elif distLeftnew == maxDist or flag1 == True:
 			angVel = right
+			flag0 = False
 			flag1 = True
 			flag2 = False
 
+			print("rotating right")
+
 		elif distRightnew == maxDist or flag2 == True:
 			angVel = left
+			flag0 = False
 			flag1 = False
 			flag2 = True
 
+			print("rotating left")
 
-		if distFrontnew > 0.5 and distFrontnew < 0.6:
+
+		if distFrontnew > 0.5 and distFrontnew < 0.75:
 			flag0 = False
 
-		if delAngZ > 0.5:
-			if flag1 == True:
-				flag1 = False
-
-			if flag2 == True:
-				flag2 = False
-
-	# if flag1 == False:
-	# 	initAngZ = angZ
-	# 	flag1 = True
-
-		
-	# if delAngZ < 0.3:
-	# 	angVel = -1
-	# xVel = 0
-
-	pubMsg.angular.z = angVel
-	pubMsg.linear.x = xVel
 
 	distRightold, distLeftold, distFrontold = distRightnew, distLeftnew, distFrontnew
-	
-	pub.publish(pubMsg)
 
-
-def odom_message( subMsg ):
-	global currentX
-	global currentY
-	global angZ
-
-	currentX = subMsg.pose.pose.position.x
-	currentY = subMsg.pose.pose.position.y
-	angZ = subMsg.pose.pose.orientation.z
+	return xVel, angVel
 
 def run():
 	rospy.init_node("demoMover", anonymous=True)
