@@ -157,7 +157,7 @@ def path_algo( subMsg ):
 				print("going back")
 				print("rotating left")
 
-				if ( Y < 3 and Y > -2 and X < 3 ) or flag[5] == True:
+				if ( Y < 3 and Y > -3 and X < 3 ) or flag[5] == True:
 					angVel = left
 					flag[5] = True
 
