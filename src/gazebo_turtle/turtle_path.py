@@ -12,39 +12,34 @@ from nav_msgs.msg import Odometry
 
 pub = rospy.Publisher("/cmd_vel_mux/input/navi", Twist, queue_size=5)
 
-distRightold, distLeftold, distFrontold = 0, 0, 0
-distRightDel, distLeftDel, distFrontDel = 0, 0, 0
+dist = {
+	"Rightold" : 0,
+	"Leftold" : 0,
+	"Frontold" : 0,
+	"RightDel": 0,
+	"LeftDel": 0,
+	"FrontDel" : 0,
+	"Rightnew": 0,
+	"Leftnew": 0,
+	"Frontnew" : 0
+}
 
-flag0 = False
-flag1 = False
-flag2 = False
-flag3 = False
-flag4 = False
-flag5 = False
-flag6 = False
+flag = [False, False, False, False, False, False, False]
 
-# angVel = 1
-sumAng = 0
-count = 0
+pos = {
+	"currentX" : 0,
+	"currentY" : 0,
+	"initX" : 0,
+	"initY" : 0
+}
 
-angZ = 0
-initAngZ = 0
-
-currentX = 0
-currentY = 0
-
-initX = 0
-initY = 0
+angVel = 0
 
 def laser_message( subMsg ):
 	pubMsg = Twist()
 
 
 	xVel, angVel = path_algo( subMsg )
-
-	# if delAngZ < 0.3:
-	# 	angVel = -1
-	# xVel = 0
 
 	pubMsg.angular.z = angVel
 	pubMsg.linear.x = xVel
@@ -53,84 +48,68 @@ def laser_message( subMsg ):
 
 
 def odom_message( subMsg ):
-	global currentX
-	global currentY
-	global angZ
-	global flag6
+	global pos
+	global flag
 
-	if flag6 == False:
-		flag6 = True
-		initX = currentX
-		initY = currentY
+	if flag[6] == False:
+		flag[6] = True
+		pos["initX"] = pos["currentX"]
+		pos["initY"] = pos["currentY"]
 
-	currentX = subMsg.pose.pose.position.x
-	currentY = subMsg.pose.pose.position.y
+	pos["currentX"] = subMsg.pose.pose.position.x
+	pos["currentY"] = subMsg.pose.pose.position.y
 	angZ = subMsg.pose.pose.orientation.z
 
 
 def path_algo( subMsg ):
-	global distRightDel
-	global distFrontDel
-	global distLeftDel 
-	global distRightold
-	global distFrontold	
-	global distLeftold
-	global flag0
-	global flag1
-	global flag2
-	global flag3
-	global flag4
-	global flag5
-	# global angVel
-	global sumAng
-	global count
-	global rotatedAng
-	global angZ
-	global initAngZ
-	global currentX
-	global currentY
+	global dist
+	global flag
+	global pos
+
+	
 
 	# These statements take care of the nan values: 
-	# The values are nan for
+	# The values are nan for out of range of (0.5,10)
+
 	if ~np.isnan(subMsg.ranges[0]):
-		distRightnew = subMsg.ranges[0]
-		distRightDel = distRightnew - distRightold
+		dist["Rightnew"] = subMsg.ranges[0]
+		dist["RightDel"] = dist["Rightnew"] - dist["Rightold"]
 
 	elif np.isnan(subMsg.ranges[0]):
 		
-		# if distRightDel >= 0:
-		distRightnew = 11
+		# if dist["RightDel"] >= 0:
+		dist["Rightnew"] = 11
 
 		# else:
-		# 	distRightnew = 0
+		# 	dist["Rightnew"] = 0
 
 
 	if ~np.isnan(subMsg.ranges[len(subMsg.ranges)/2]):
-		distFrontnew = subMsg.ranges[len(subMsg.ranges)/2] 
-		distFrontDel = distFrontnew - distFrontold
+		dist["Frontnew"] = subMsg.ranges[len(subMsg.ranges)/2] 
+		dist["FrontDel"] = dist["Frontnew"] - dist["Frontold"]
 
 	elif np.isnan(subMsg.ranges[len(subMsg.ranges)/2]):
-		# if distFrontDel >= 0:
-		distFrontnew = 11
+		# if dist["FrontDel"] >= 0:
+		dist["Frontnew"] = 11
 
 		# else:
-		# 	distFrontnew = 0
+		# 	dist["Frontnew"] = 0
 
 
 	if ~np.isnan(subMsg.ranges[-1]):
-		distLeftnew = subMsg.ranges[-1]
-		distLeftDel = distLeftnew - distLeftold
+		dist["Leftnew"] = subMsg.ranges[-1]
+		dist["LeftDel"] = dist["Leftnew"] - dist["Leftold"]
 
 	elif np.isnan(subMsg.ranges[-1]):
-		# if distLeftDel >= 0:
-		distLeftnew = 11
+		# if dist["LeftDel"] >= 0:
+		dist["Leftnew"] = 11
 
 		# else:
-		# 	distLeftnew = 0
+		# 	dist["Leftnew"] = 0
 
 
 
-	distList = [distFrontnew, distLeftnew, distRightnew]
+	distList = [dist["Frontnew"], dist["Leftnew"], dist["Rightnew"]]
 	maxDist = max(distList)
 
 	angVel = 0
@@ -142,94 +121,90 @@ def path_algo( subMsg ):
 	back = -0.1
 	rest = 0
 
-	delAngZ = abs(angZ - initAngZ)
 
-	X = currentX - initX
-	Y = currentY - initY
+	X = pos["currentX"] - pos["initX"]
+	Y = pos["currentY"] - pos["initY"]
 
 
 	print("\n"*3)
-	print("distRight: ", distRightnew)
-	print("distFront: ", distFrontnew)
-	print("distLeft: ", distLeftnew)
-	
+	print("distRight: ", dist["Rightnew"])
+	print("distFront: ", dist["Frontnew"])
+	print("distLeft: ", dist["Leftnew"])
+
 	print("X: ", X)
 	print("Y: ", Y)
 
 	print("\n"*3)
 
-	if distFrontnew > 0.5 and distLeftnew > 0.5 and distRightnew > 0.5:
+	if dist["Frontnew"] > 0.5 and dist["Leftnew"] > 0.5 and dist["Rightnew"] > 0.5:
 		
-		if distFrontnew < 0.75 or distLeftnew < 0.75 or distRightnew < 0.75:
+		if dist["Frontnew"] < 0.75 or dist["Leftnew"] < 0.75 or dist["Rightnew"] < 0.75:
 
 			xVel = rest
 
-			if count == 1:
-				initAngZ = angZ
 
-
-			elif distFrontnew < 0.75 or flag4 == True:
+			if dist["Frontnew"] < 0.75 or flag[4] == True:
 				xVel = -0.1
-				flag4 = True
+				flag[4] = True
 				angVel = right
 
 				print("going back")
 				print("rotating left")
 
-				if ( Y > 0 and X > 5) or flag5 == True:
+				if ( Y > 2 and X < 10 ) or flag[5] == True:
 					angVel = left
-					flag5 = True
+					flag[5] = True
 
 					print("rotating right")
 
 				
 
-			elif distRightnew < 0.75 or flag2 == True:
+			elif dist["Rightnew"] < 0.75 or flag[2] == True:
 				angVel = left
-				flag2 = True
-				flag1 = False
-				flag0 = False
+				flag[2] = True
+				flag[1] = False
+				flag[0] = False
 
 				print("rotating left")
 
-			elif distLeftnew < 0.75 or flag1 == True:
+			elif dist["Leftnew"] < 0.75 or flag[1] == True:
 				angVel = right
-				flag0 = False
-				flag1 = True	
-				flag2 = False
+				flag[0] = False
+				flag[1] = True	
+				flag[2] = False
 
 				print("rotating right")
 
-		elif distFrontnew == maxDist or flag0 == True:
+		elif dist["Frontnew"] == maxDist or flag[0] == True:
 			xVel = front
-			flag0 = True
-			flag1 = False
-			flag2 = False
+			flag[0] = True
+			flag[1] = False
+			flag[2] = False
 
 			print("going forward")
 
-		elif distLeftnew == maxDist or flag1 == True:
+		elif dist["Leftnew"] == maxDist or flag[1] == True:
 			angVel = right
-			flag0 = False
-			flag1 = True
-			flag2 = False
+			flag[0] = False
+			flag[1] = True
+			flag[2] = False
 
 			print("rotating right")
 
-		elif distRightnew == maxDist or flag2 == True:
+		elif dist["Rightnew"] == maxDist or flag[2] == True:
 			angVel = left
-			flag0 = False
-			flag1 = False
-			flag2 = True
+			flag[0] = False
+			flag[1] = False
+			flag[2] = True
 
 			print("rotating left")
 
 
-		if distFrontnew > 0.5 and distFrontnew < 0.75:
-			flag0 = False
+		if dist["Frontnew"] > 0.5 and dist["Frontnew"] < 0.75:
+			flag[0] = False
 
 
-	distRightold, distLeftold, distFrontold = distRightnew, distLeftnew, distFrontnew
+	dist["Rightold"], dist["Leftold"], dist["Frontold"] = dist["Rightnew"], dist["Leftnew"], dist["Frontnew"]
 
 	return xVel, angVel
 
