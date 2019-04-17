@@ -6,8 +6,7 @@ This is a simulation I made to complete the following task:
 > Write ros node to control the movement of turtlebot so as to reach from current
 starting point to position marked in red. Use LaserScan data and move turtlebot in the
 direction of farthest obstacle in the world. No predefined movement to be written in the
-node.
-> The safe distance from obstacle is 0.5 m.
+node. The safe distance from obstacle is 0.5 m.
 
 turtlebot is a tool that helps people to explore simulations.
 
@@ -21,7 +20,6 @@ $ roslaunch turtlebot_gazebo turtlebot_world.launch
 ```
 After this Gazebo should open up, move the turtlebot to starting position, it should look something like this:
 
-<!-- [!gazebo_turtle image](assets/gazebo_turtle.png) -->
 
 If you are facing any issues please refer to [ROS](https://answers.ros.org/questions/) or [Gazebo](http://answers.gazebosim.org/questions/) forums. If you are a newcomer to ROS or Gazebo please refer to [A Gentle Introduction to ROS](https://cse.sc.edu/~jokane/agitr/) and [Gazebo Tutorials](http://gazebosim.org/tutorials)
 
@@ -37,5 +35,3 @@ $ rosrun gazebo_turtle/turtle_path.py
 ```
 
 After running the above commands the turtlebot should start moving as shown in the video below:
-
-<!-- [gazebo_turtle video](assets/gazebo_turtle.mp4) -->
