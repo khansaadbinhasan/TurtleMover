@@ -21,7 +21,7 @@ $ roslaunch turtlebot_gazebo turtlebot_world.launch
 ```
 After this Gazebo should open up, move the turtlebot to starting position, it should look something like this:
 
-<!-- [!gazebo_turtle image](assets/gazebo_turtle.png) -->
+![gazebo_turtle image](assets/gazebo_turtle.png)
 
 If you are facing any issues please refer to [ROS](https://answers.ros.org/questions/) or [Gazebo](http://answers.gazebosim.org/questions/) forums. If you are a newcomer to ROS or Gazebo please refer to [A Gentle Introduction to ROS](https://cse.sc.edu/~jokane/agitr/) and [Gazebo Tutorials](http://gazebosim.org/tutorials)
 
@@ -38,4 +38,4 @@ $ rosrun gazebo_turtle/turtle_path.py
 
 After running the above commands the turtlebot should start moving as shown in the video below:
 
-<!-- [gazebo_turtle video](assets/gazebo_turtle.mp4) -->
+![gazebo_turtle video](assets/gazebo_turtle.mp4)
