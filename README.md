@@ -20,6 +20,7 @@ $ roslaunch turtlebot_gazebo turtlebot_world.launch
 ```
 After this Gazebo should open up, move the turtlebot to starting position, it should look something like this:
 
+![gazebo_turtle image](assets/gazebo_turtle.png)
 
 If you are facing any issues please refer to [ROS](https://answers.ros.org/questions/) or [Gazebo](http://answers.gazebosim.org/questions/) forums. If you are a newcomer to ROS or Gazebo please refer to [A Gentle Introduction to ROS](https://cse.sc.edu/~jokane/agitr/) and [Gazebo Tutorials](http://gazebosim.org/tutorials)
 
@@ -35,3 +36,13 @@ $ rosrun gazebo_turtle/turtle_path.py
 ```
 
 After running the above commands the turtlebot should start moving as shown in the video below:
+
+![gazebo_turtle gif](assets/gazebo_turtle.gif)
+
+The full video can be found [here](https://www.youtube.com/watch?v=aV1GmPjS0P4)
+
+## The Code
+
+The code is very simple to understand once you have some knowledge of ROS and gazebo. Use `rotopic list` to see topics and do `rostopic echo /scan` to see laser data. The laser used in turtlebot has an angle from -30 to 30 degrees. Hence 0th value and last value represent right and left of turtlebot and mid value represents the front.
+
+Using this data the turtlebot moves in the direction of farthest object, and if the distance from some object goes close to 0.75m it takes appropriate action to avoid collision
