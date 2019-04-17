@@ -1,14 +1,10 @@
 # TurtleMover
 
-Package for gazebo simulation of turtlebot
-
-This is a simulation I made to complete the following task:
+This is a Package I made to complete the following task:
 > Write ros node to control the movement of turtlebot so as to reach from current
 starting point to position marked in red. Use LaserScan data and move turtlebot in the
 direction of farthest obstacle in the world. No predefined movement to be written in the
 node. The safe distance from obstacle is 0.5 m.
-
-turtlebot is a tool that helps people to explore simulations.
 
 ## Installation
 
